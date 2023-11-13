@@ -1,4 +1,5 @@
 defmodule TypedStruct do
+  require TypedStruct
   @external_resource "README.md"
   @moduledoc "README.md"
              |> File.read!()
@@ -175,6 +176,19 @@ defmodule TypedStruct do
     end
   end
 
+  defmacro fields(fields) do
+    e_fields =
+      fields
+      |> Enum.map(fn
+        {name, type} when is_atom(name) -> {name, type, []}
+        {:{}, _, [name, type, opts]} when is_atom(name) -> {name, type, opts}
+      end)
+
+    quote bind_quoted: [fields: Macro.escape(e_fields)] do
+      TypedStruct.__fields__(fields, __ENV__)
+    end
+  end
+
   @doc false
   def __field__(name, type, opts, %Macro.Env{module: mod} = env)
       when is_atom(name) do
@@ -200,6 +214,15 @@ defmodule TypedStruct do
 
   def __field__(name, _type, _opts, _env) do
     raise ArgumentError, "a field name must be an atom, got #{inspect(name)}"
+  end
+
+  @doc false
+  def __fields__(fields, %Macro.Env{} = env) do
+    fields
+    |> Enum.each(fn {name, type, opts} ->
+      IO.inspect(name)
+      __field__(name, type, opts, env)
+    end)
   end
 
   # Makes the type nullable if the key is not enforced.

@@ -16,8 +16,21 @@ defmodule TypedStructTest do
         field :string_with_default, String.t(), default: "default"
         field :mandatory_int, integer(), enforce: true
       end
+    end
 
-      def enforce_keys, do: @enforce_keys
+  # Store the bytecode so we can get information from it.
+  {:module, _name, bytecode_fields, _exports} =
+    defmodule TestStructFields do
+      use TypedStruct
+
+      typedstruct do
+        fields([
+          {:int, integer()},
+          {:string, String.t()},
+          {:string_with_default, String.t(), default: "default"},
+          {:mandatory_int, integer(), enforce: true}
+        ])
+      end
     end
 
   {:module, _name, bytecode_opaque, _exports} =
@@ -80,6 +93,15 @@ defmodule TypedStructTest do
            }
   end
 
+  test "generates the struct with its defaults using fields" do
+    assert TestStructFields.__struct__() == %TestStructFields{
+             int: nil,
+             string: nil,
+             string_with_default: "default",
+             mandatory_int: nil
+           }
+  end
+
   test "enforces keys for fields with `enforce: true`" do
     assert TestStruct.enforce_keys() == [:mandatory_int]
   end
@@ -134,7 +156,7 @@ defmodule TypedStructTest do
     # Define a second struct with the type expected for TestStruct.
     {:module, _name, bytecode_expected, _exports} =
       defmodule TestStruct3 do
-        defstruct [:int]
+        defstrgituct [:int]
 
         @opaque t() :: %__MODULE__{
                   int: integer() | nil
