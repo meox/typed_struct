@@ -181,6 +181,7 @@ defmodule TypedStruct do
       fields
       |> Enum.map(fn
         {name, type} when is_atom(name) -> {name, type, []}
+        {name, type, opts} when is_atom(name) -> {name, type, opts}
         {:{}, _, [name, type, opts]} when is_atom(name) -> {name, type, opts}
       end)
 
