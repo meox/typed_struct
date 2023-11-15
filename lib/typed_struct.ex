@@ -220,7 +220,6 @@ defmodule TypedStruct do
   def __fields__(fields, %Macro.Env{} = env) do
     fields
     |> Enum.each(fn {name, type, opts} ->
-      IO.inspect(name)
       __field__(name, type, opts, env)
     end)
   end
